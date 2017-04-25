@@ -9,7 +9,6 @@
   "author": "Julian Fell",
   "license": "ISC",
   "dependencies": {
-    "join-js": "^0.4.1",
-    "lodash": "^4.17.4"
+    "join-js": "0.4.1"
   }
 }
