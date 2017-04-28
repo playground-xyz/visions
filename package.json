@@ -4,11 +4,20 @@
   "description": "Small library to allow postgres views to be used and to enable auto join population",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test"
   },
   "author": "Julian Fell",
   "license": "ISC",
   "dependencies": {
     "join-js": "0.4.1"
+  },
+  "peerDependencies": {
+    "knex": "0.12.x"
+  },
+  "devDependencies": {
+    "expect": "^1.20.2",
+    "knex": "^0.12.9",
+    "mocha": "^3.3.0",
+    "mock-knex": "^0.3.8"
   }
 }
