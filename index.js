@@ -90,6 +90,25 @@ PreparedQuery.prototype.limit = function (value) {
 };
 
 PreparedQuery.prototype.where = function (clauses) {
+  if (!clauses) {
+    return this;
+  }
+
+  // Allow a single where clause to be passed in
+  if (!Array.isArray(clauses)) {
+    clauses = [clauses];
+  }
+
+  // Validate the input structure
+  clauses.forEach(clause => {
+    if (!clause.key) {
+      throw new Error(`Where clause missing key: ${clause}`);
+    }
+    if ((clause.value === undefined) && !Array.isArray(clause.values)) {
+      throw new Error(`Where clause missing a value or values (array): ${clause}`);
+    }
+  });
+
   this.whereClauses = this.whereClauses.concat(clauses);
 
   // Chainable
