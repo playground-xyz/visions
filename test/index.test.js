@@ -91,17 +91,15 @@ describe('Integration tests', function () {
     });
 
     it('Should compose a select query', function () {
-      expect(generatedQuery.bindings).toEqual([]);
+      expect(generatedQuery.bindings).toEqual([3]);
       expect(generatedQuery.method).toEqual('select');
 
-      // View on student table
-      expect(generatedQuery.sql).toContain('select "student_view"."id" as "id"');
+      // Should use a subquery to apply the limit
+      expect(generatedQuery.sql).toContain('with "student_view-core" as (select * from "student_view" offset ?)');
+      // View on student table with alias
+      expect(generatedQuery.sql).toContain('select "student_view-core"."id" as "id"');
       // Original table for friend table
       expect(generatedQuery.sql).toContain('"friend"."age" as "friend_age"');
-    });
-
-    it('Should have no results', function () {
-      expect(result).toEqual(0);
     });
 
   });
@@ -165,7 +163,7 @@ describe('Integration tests', function () {
       expect(generatedQuery.method).toEqual('select');
 
       // Un-populated tutor association uses as normal property
-      expect(generatedQuery.sql).toContain('"student"."tutor" as "tutor"');
+      expect(generatedQuery.sql).toContain('"student-core"."tutor" as "tutor"');
       // Properties of populated friends collection prefixed with friend_
       expect(generatedQuery.sql).toContain('"friend"."age" as "friend_age"');
     });

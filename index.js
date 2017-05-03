@@ -133,13 +133,13 @@ PreparedQuery.prototype.exec = function () {
       this.knex,
       this.whereClauses,
       this.sortAttr,
-      this.sortDir
+      this.sortDir,
+      this._limit,
+      this._skip
   ).then(data => doJoins(
       data,
       this.models,
       this.originalModel,
-      this.modifiedModel,
-      this._skip,
-      this._limit
+      this.modifiedModel
   ));
 };
