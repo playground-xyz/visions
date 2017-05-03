@@ -1,6 +1,6 @@
 {
   "name": "@playgroundxyz/knex-wrapper",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Small library to allow postgres views to be used and to enable auto join population",
   "main": "index.js",
   "scripts": {
