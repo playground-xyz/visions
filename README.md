@@ -2,15 +2,15 @@
 
 KnexWrapper is very much a QueryBuilder not a full ORM. It will not handle schema definitions or migrations, but instead
 allows you to manage your own database without writing repetitive boilerplate queries for basic selects and joins. There are
-a couple of interesting features that are not offereded in existing nodejs QueryBuilder libraries:
+a couple of interesting features that are not offered in existing nodejs QueryBuilder libraries:
 
 - Clean database view support
-- Model association population using proper DB joins.
+- Model association population using proper database joins (one database query per logical query)
 
-Support for database views are implemented overlaying a set of view names over the original table names, then
+Support for database views are implemented by overlaying a set of view names over the original table names, then
 using this "overlay" to generate and rename queries. Once the wrapper function is created, the high-level interface
-will substitute all uses of the original table name with the view. This both simplifies the ease of use as well as
-protecting against bugs that use the wrong view in a query.
+will substitute all uses of the original table name with the overlayed view. This both simplifies the ease of use
+as well as protecting against bugs that use the wrong view in a query.
 
 Model associations are used to dynamically create common query patterns without the boilerplate. The high-level
 interface exposes basic options when querying a model, but the `KnexWrapper.getViewName()` method can be used
@@ -22,7 +22,7 @@ along with knex to implement more specialised queries when required.
 
 ## Usage
 
-Setup your model schema (see (JoinJs)[] for details on the structure for this declaration step). The only
+Setup your model schema (see (JoinJs)[https://github.com/archfirst/joinjs] for details on the structure for this declaration step). The only
 difference is that `columnPrefix` is not required as it must match the query generation.
 
 ```js
@@ -57,6 +57,7 @@ const knex = require('knex')(config.database);
 app.use(async (req, res, next) => {
 
   // The structure of your views is completely up to your use-case
+  const viewId = await determineViewIdForRequest(req.user.id);
   const views = {
     owner: `${viewId}__owner`,
     pet: `${viewId}__pet`
@@ -72,10 +73,10 @@ app.use(async (req, res, next) => {
 Finally, in your controllers you can write simple, readable queries.
 
 ```js
-app.get('/owner/:id', async (req, res) => {
+app.get('/owner/:id', (req, res) => {
   req.queries.selectModel('owner')
       .populate('pet')
-      .sort('birthday')
+      .sort('birthday', 'asc')
       .limit(req.query.limit)
       .skip(req.query.skip)
       .where({
@@ -91,7 +92,7 @@ app.get('/owner/:id', async (req, res) => {
 Or use knex directly for more complex queries.
 
 ```js
-app.get('/owner/:id', async (req, res) => {
+app.get('/owner/:id', (req, res) => {
   knex
     .select()
     // This will use the view you overlayed on the owner model for this request
@@ -107,7 +108,7 @@ app.get('/owner/:id', async (req, res) => {
 
 ## Dependencies
 
-Uses join-js internally to convert from relational results to nested JSON objects (when populate is used).
+- JoinJs
 
 ## API
 
