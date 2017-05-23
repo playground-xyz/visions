@@ -1,20 +1,20 @@
 {
   "name": "@playgroundxyz/knex-wrapper",
   "version": "1.0.1",
-  "description": "Small library to allow postgres views to be used and to enable auto join population",
+  "description": "Wrapper for knex to reduce boilerplate for basic queries",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test"
+    "test": "npm run lint && mocha test",
+    "lint": "eslint index.js lib/ test/",
+    "lint:fix": "eslint --fix index.js lib/ test/"
   },
   "author": "Julian Fell",
   "license": "ISC",
   "dependencies": {
     "join-js": "0.4.1"
   },
-  "peerDependencies": {
-    "knex": "0.12.x"
-  },
   "devDependencies": {
+    "@playgroundxyz/styleguide": "^1.1.1",
     "expect": "^1.20.2",
     "knex": "^0.12.9",
     "mocha": "^3.3.0",

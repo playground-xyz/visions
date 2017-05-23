@@ -10,10 +10,10 @@ const models = [
     idProperty: 'id',
     properties: ['name', 'email'],
     associations: [
-      { name: 'tutor', mapId: 'tutor', columnPrefix: 'tutor_' }
+      { name: 'tutor', mapId: 'tutor' }
     ],
     collections: [
-      { name: 'friends', mapId: 'friend', columnPrefix: 'friend_' }
+      { name: 'friends', mapId: 'friend' }
     ]
   },
   {
@@ -21,7 +21,7 @@ const models = [
     idProperty: 'id',
     properties: ['name', 'email'],
     collections: [
-      { name: 'students', mapId: 'student', columnPrefix: 'student_' }
+      { name: 'students', mapId: 'student' }
     ]
   },
   {
@@ -36,15 +36,14 @@ const views = {
   tutor: 'tutor_view'
 };
 
-describe('Integration tests', function () {
-  
-  describe('Single skip call with views', function () {
-  
+describe('Integration tests', () => {
+
+  describe('Single skip call with views', () => {
+
     let tracker;
     let generatedQuery;
-    let result;
 
-    before(function () {
+    before(() => {
       // Mock out the knex object
       mockDb.mock(db);
       tracker = mockDb.getTracker();
@@ -56,20 +55,20 @@ describe('Integration tests', function () {
         // Save a reference to the generated query
         generatedQuery = query;
         query.response([
-            {
-              id: 's1',
-              name: 'Jim',
-              email: 'jim@school.com',
-              tutor: 't1',
-              friend: 'f1'
-            },
-            {
-              id: 's1',
-              name: 'Jim',
-              email: 'jim@school.com',
-              tutor: 't1',
-              friend: 'f2'
-            }
+          {
+            id: 's1',
+            name: 'Jim',
+            email: 'jim@school.com',
+            tutor: 't1',
+            friend: 'f1'
+          },
+          {
+            id: 's1',
+            name: 'Jim',
+            email: 'jim@school.com',
+            tutor: 't1',
+            friend: 'f2'
+          }
         ]);
       });
 
@@ -82,20 +81,19 @@ describe('Integration tests', function () {
         // Skip past the final result
         .skip(3)
         .exec()
-        .then(res => {
-          // Save a reference to the result
-          result = res;
+        .then(() => {
           tracker.uninstall();
           mockDb.unmock(db);
         });
     });
 
-    it('Should compose a select query', function () {
+    it('Should compose a select query', () => {
       expect(generatedQuery.bindings).toEqual([3]);
       expect(generatedQuery.method).toEqual('select');
 
       // Should use a subquery to apply the limit
-      expect(generatedQuery.sql).toContain('with "student_view-core" as (select * from "student_view" offset ?)');
+      expect(generatedQuery.sql).toContain(
+          'with "student_view-core" as (select * from "student_view" offset ?)');
       // View on student table with alias
       expect(generatedQuery.sql).toContain('select "student_view-core"."id" as "id"');
       // Original table for friend table
@@ -104,13 +102,13 @@ describe('Integration tests', function () {
 
   });
 
-  describe('Single populate call with no views', function () {
-  
+  describe('Single populate call with no views', () => {
+
     let tracker;
     let generatedQuery;
     let result;
 
-    before(function () {
+    before(() => {
       // Mock out the knex object
       mockDb.mock(db);
       tracker = mockDb.getTracker();
@@ -122,22 +120,22 @@ describe('Integration tests', function () {
         // Save a reference to the generated query
         generatedQuery = query;
         query.response([
-            {
-              id: 's1',
-              name: 'Jim',
-              email: 'jim@school.com',
-              tutor: 't1',
-              friend_age: 22,
-              friend_id: 'f1'
-            },
-            {
-              id: 's1',
-              name: 'Jim',
-              email: 'jim@school.com',
-              tutor: 't1',
-              friend_age: 26,
-              friend_id: 'f2'
-            }
+          {
+            id: 's1',
+            name: 'Jim',
+            email: 'jim@school.com',
+            tutor: 't1',
+            friend_age: 22,
+            friend_id: 'f1'
+          },
+          {
+            id: 's1',
+            name: 'Jim',
+            email: 'jim@school.com',
+            tutor: 't1',
+            friend_age: 26,
+            friend_id: 'f2'
+          }
         ]);
       });
 
@@ -158,7 +156,7 @@ describe('Integration tests', function () {
         });
     });
 
-    it('Should compose a select query', function () {
+    it('Should compose a select query', () => {
       expect(generatedQuery.bindings).toEqual([]);
       expect(generatedQuery.method).toEqual('select');
 
@@ -168,21 +166,21 @@ describe('Integration tests', function () {
       expect(generatedQuery.sql).toContain('"friend"."age" as "friend_age"');
     });
 
-    it('Should construct a single output object', function () {
+    it('Should construct a single output object', () => {
       expect(result.length).toEqual(1);
       expect(result[0].id).toEqual('s1');
       expect(result[0].name).toEqual('Jim');
       expect(result[0].email).toEqual('jim@school.com');
     });
 
-    it('Should populate the list of friends', function () {
+    it('Should populate the list of friends', () => {
       const friends = result[0].friends;
       expect(friends.length).toEqual(2);
       expect(friends[0].id).toEqual('f1');
       expect(friends[1].id).toEqual('f2');
     });
 
-    it('Should not populate the tutor field', function () {
+    it('Should not populate the tutor field', () => {
       expect(result[0].tutor).toEqual('t1');
     });
 
