@@ -22,7 +22,7 @@ along with knex to implement more specialised queries when required.
 
 ## Usage
 
-Setup your model schema (see (JoinJs)[https://github.com/archfirst/joinjs] for details on the structure for this declaration step). The only
+Setup your model schema (see [JoinJs](https://github.com/archfirst/joinjs) for details on the structure for this declaration step). The only
 difference is that `columnPrefix` is not required as it must match the query generation.
 
 ```js
@@ -108,7 +108,7 @@ app.get('/owner/:id', (req, res) => {
 
 ## Dependencies
 
-- JoinJs
+- [JoinJs](https://github.com/archfirst/joinjs) which only depends on Lodash internally
 
 ## API
 
