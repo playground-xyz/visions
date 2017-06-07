@@ -137,7 +137,8 @@ describe('ConstructQuery', () => {
           4,         // limit
           7,         // skip
           'name',    // sortAttr
-          'asc'      // sortDir
+          'asc',     // sortDir
+          []
       );
 
       return qb.then(() => {
@@ -167,7 +168,8 @@ describe('ConstructQuery', () => {
       return qb.then(() => {
         // Subquery
         expect(generatedQuery.sql).toContain(
-            'select * from "student" order by "student"."name" asc limit ? offset ?');
+            'select * from "student" where "student"."id" in (?, ?) order ' +
+            'by "student"."name" asc limit ? offset ?');
 
         // join tutor (assoc)
         expect(generatedQuery.sql).toContain(
@@ -179,10 +181,8 @@ describe('ConstructQuery', () => {
 
         // Outer query sorting
         expect(generatedQuery.sql).toContain('order by "student-core"."name" asc');
-        // Where clause
-        expect(generatedQuery.sql).toContain('where "student-core"."id" in (?, ?)');
         // Bindings
-        expect(generatedQuery.bindings).toEqual([4, 7, 'ID_1', 'ID_2']);
+        expect(generatedQuery.bindings).toEqual(['ID_1', 'ID_2', 4, 7]);
       });
 
     });
