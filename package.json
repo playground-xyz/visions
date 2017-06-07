@@ -1,6 +1,6 @@
 {
   "name": "@playgroundxyz/knex-wrapper",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Wrapper for knex to reduce boilerplate for basic queries",
   "main": "index.js",
   "scripts": {
