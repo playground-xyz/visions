@@ -2,11 +2,12 @@
   "name": "@playgroundxyz/knex-wrapper",
   "version": "1.0.2",
   "description": "Wrapper for knex to reduce boilerplate for basic queries",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "npm run lint && mocha test",
     "lint": "eslint index.js lib/ test/",
-    "lint:fix": "eslint --fix index.js lib/ test/"
+    "lint:fix": "eslint --fix index.js lib/ test/",
+    "docs": "rm -rf ./docs && esdoc -c .esdoc.json"
   },
   "author": "Julian Fell",
   "license": "ISC",
@@ -15,6 +16,7 @@
   },
   "devDependencies": {
     "@playgroundxyz/styleguide": "^1.1.1",
+    "esdoc": "^0.5.2",
     "expect": "^1.20.2",
     "knex": "^0.12.9",
     "mocha": "^3.3.0",
