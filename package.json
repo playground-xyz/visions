@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "npm run lint && mocha test",
+    "coverage": "nyc mocha test && nyc report --reporter=html",
     "lint": "eslint index.js lib/ test/",
     "lint:fix": "eslint --fix index.js lib/ test/",
     "docs": "rm -rf ./docs && esdoc -c .esdoc.json"
@@ -20,6 +21,7 @@
     "expect": "^1.20.2",
     "knex": "^0.12.9",
     "mocha": "^3.3.0",
-    "mock-knex": "^0.3.8"
+    "mock-knex": "^0.3.8",
+    "nyc": "^11.0.3"
   }
 }
