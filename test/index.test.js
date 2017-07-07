@@ -73,11 +73,10 @@ describe('Integration tests', () => {
       });
 
       // Run the query
-      const queries = new KnexWrapper(models, db);
-      queries.applyViews(views);
+      const queries = new KnexWrapper(models, db, views);
 
       return queries
-        .selectModel('student')
+        .generateQueryFor('student')
         // Skip past the final result
         .skip(3)
         .exec()
@@ -140,12 +139,10 @@ describe('Integration tests', () => {
       });
 
       // Run the query
-      const queries = new KnexWrapper(models, db);
-      // No views
-      queries.applyViews({});
+      const queries = new KnexWrapper(models, db, {});
 
       return queries
-        .selectModel('student')
+        .generateQueryFor('student')
         .populate('friends')
         .exec()
         .then(res => {
