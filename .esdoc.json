@@ -1,7 +1,7 @@
 {
   "source": "./lib",
   "destination": "./docs",
-  "title": "Knex Wrapper",
+  "title": "Visions",
   "unexportIdentifier": true,
 	"experimentalProposal": {
     "classProperties": true,
