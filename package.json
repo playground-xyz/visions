@@ -11,6 +11,9 @@
     "docs": "rm -rf ./docs && esdoc -c .esdoc.json"
   },
   "author": "Julian Fell",
+  "contributors": [
+    "Jonathan Mullins"
+  ],
   "license": "ISC",
   "dependencies": {
     "join-js": "0.4.1"
