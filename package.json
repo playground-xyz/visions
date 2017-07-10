@@ -1,6 +1,6 @@
 {
   "name": "visions",
-  "version": "2.0.1",
+  "version": "2.0.0",
   "repository": "git://github.com/playground-xyz/visions",
   "description": "Wrapper for knex to reduce boilerplate for basic queries",
   "main": "lib/index.js",
@@ -15,7 +15,7 @@
   "contributors": [
     "Jonathan Mullins"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "join-js": "0.4.1"
   },
