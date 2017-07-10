@@ -20,6 +20,10 @@ along with knex to implement more specialised queries when required.
 
 `npm install --save visions`
 
+## Docs
+
+https://playground-xyz.github.io/visions/
+
 ## Usage
 
 Setup your model schema (see [JoinJs](https://github.com/archfirst/joinjs) for details on the structure for
