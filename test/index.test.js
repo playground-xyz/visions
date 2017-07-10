@@ -149,7 +149,7 @@ describe('#generateQueryFor', () => {
             name: 'Jim',
             email: 'jim@school.com',
             tutor: 't1',
-            friend_ie: 'f2'
+            friend_id: 'f2'
           }
         ]);
       });
