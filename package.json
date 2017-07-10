@@ -1,5 +1,5 @@
 {
-  "name": "@playgroundxyz/knex-wrapper",
+  "name": "visions",
   "version": "1.0.2",
   "description": "Wrapper for knex to reduce boilerplate for basic queries",
   "main": "lib/index.js",
