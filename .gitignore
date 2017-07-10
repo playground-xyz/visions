@@ -1,6 +1,4 @@
 node_modules/
-docs/
 coverage/
 .nyc_output/
-
 npm-debug.log
