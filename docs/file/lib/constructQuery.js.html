@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/constructQuery.js | Knex Wrapper API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/PreparedQuery.js~PreparedQuery.html">PreparedQuery</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/index.js~Visions.html">Visions</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-constructQuery">constructQuery</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-doJoins">doJoins</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-helpers">helpers</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-joinjs">joinjs</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-PreparedQuery">PreparedQuery</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-preProcessModels">preProcessModels</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/constructQuery.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">const helpers = require(&apos;./helpers&apos;);
+
+/**
+ * Builds up a list of select statements for a collection of the entity being queried. This
+ * includes the idProperty, any regular properties and any associations if this collection
+ * is populated.
+ * @ignore
+ */
+function addCollectionSelects(coll, model, models) {
+  const collModel = models.find(m =&gt; m.mapId === coll.mapId);
+
+  let selects = collModel.properties.map(prop =&gt;
+      helpers.createRenamedSelectStatement(coll.viewId, prop, coll.mapId)
+  );
+
+  selects.push(
+      helpers.createRenamedSelectStatement(coll.viewId, collModel.idProperty, coll.mapId)
+  );
+
+  if (coll.populate) {
+    selects = selects.concat(collModel.associations.map(collAssoc =&gt;
+        helpers.createRenamedSelectStatement(coll.viewId, collAssoc.mapId, coll.mapId)
+    ));
+  }
+
+  return selects;
+}
+
+/**
+ * Builds up a list of select statements for an association of the entity being queried. This
+ * is just the Id from the original entity (eg the foreign key) if this association isn&apos;t
+ * populated, or all properties if it is.
+ * @ignore
+ */
+function addAssociationSelects(assoc, model, models) {
+  if (!assoc.populate) {
+    // If an association is not populated, all we need is the regular column
+    // in the table
+    return [helpers.createSelectStatement(`${model.viewId}-core`, assoc.mapId)];
+  }
+
+  const assocModel = models.find(m =&gt; m.mapId === assoc.mapId);
+
+  // Get the property fields
+  let selects = assocModel.properties.map(prop =&gt;
+      helpers.createRenamedSelectStatement(assoc.viewId, prop, assoc.mapId)
+  );
+  // Get the ID field
+  selects.push(
+      helpers.createRenamedSelectStatement(assoc.viewId, assocModel.idProperty, assoc.mapId)
+  );
+
+  // Get the fields for associations of the populated association
+  selects = selects.concat(assocModel.associations.map(assocAssoc =&gt;
+      helpers.createRenamedSelectStatement(assoc.viewId, assocAssoc.mapId, assoc.mapId)
+  ));
+
+  return selects;
+}
+
+/**
+ * Builds up a list of select statements for the entity being queried.
+ * @ignore
+ */
+function constructSelects(models, model) {
+  // Generate the select statements needed for the joins and result mapping
+  const idSelect = helpers.createSelectStatement(
+      `${model.viewId}-core`,
+      model.idProperty,
+      model.mapId
+  );
+
+  const propSelects = model.properties.map(prop =&gt;
+      helpers.createSelectStatement(`${model.viewId}-core`, prop)
+  );
+
+  const assocSelects = model.associations.map(assoc =&gt;
+      addAssociationSelects(assoc, model, models)
+  );
+
+  const collectionSelects = model.collections.map(coll =&gt;
+      addCollectionSelects(coll, model, models)
+  );
+
+  const allSelects = [idSelect]
+      .concat(propSelects)
+      .concat(assocSelects)
+      .concat(collectionSelects);
+
+  // Flatten the arrays of select statements
+  return [].concat.apply([], allSelects);
+}
+
+/**
+ * Generates a `core` subquery for the primary entity and applies any filters to it, including
+ * limit, skip, sort and where clauses. By applying these filters to a subquery, the sorting
+ * and pagination will behave as expected with the extra association and collection fields added
+ * after.
+ * @ignore
+ */
+function constructSubQuery(qb, viewId, limit, skip, sortAttr, sortDir, whereClauses) {
+  qb = qb.select().from(viewId);
+  if (limit) {
+    qb = qb.limit(limit);
+  }
+  if (skip) {
+    qb = qb.offset(skip);
+  }
+  if (sortAttr &amp;&amp; sortDir) {
+    qb = qb.orderBy(`${viewId}.${sortAttr}`, sortDir);
+  }
+
+  // Attach any where clauses we need
+  qb = helpers.applyWhereClauses(qb, whereClauses);
+
+  return qb;
+}
+
+/**
+ * As the where clauses are validated when they are passed into the PreparedQuery
+ * instance, we know that there will be exactly one value or list of values. We select
+ * the relevant knex method depending on the input structure.
+ * @ignore
+ */
+function getMethodFromClause(clause) {
+  if (clause.value !== undefined) {
+    return &apos;where&apos;;
+  }
+  if (clause.values !== undefined) {
+    return &apos;whereIn&apos;;
+  }
+
+  // This is checked when clauses are supplied to the PreparedQuery instance
+  // so we should never get here
+  throw new Error(&apos;Must pass in value or values parameter for each clause&apos;);
+}
+
+
+/**
+ * Creates an object with the information required to generate a knex where clause. The
+ * object has the following keys:
+ *
+ * - method: &apos;where&apos; or &apos;whereIn&apos;
+ * - params: A list of parameters to pass to the method (table.field, value(s))
+ * - core: Bool indicating if it should be applied to the `core` subquery, or the outer query
+ * @ignore
+ */
+function preProcessWhereClause(clause, models, model) {
+
+  // Default to the the model itself
+  let viewId = model.viewId;
+  let core = true;
+
+  // If a model is specified, use its view (outside the core query)
+  if (clause.model) {
+    const altModel = models.find(m =&gt; m.mapId === clause.model);
+    if (!altModel) {
+      throw new Error(`Invalid modelId value supplied as part of where clause: ${clause}`);
+    }
+    viewId = altModel.viewId;
+    core = false;
+  }
+
+  let binding = clause.value;
+  if (binding === undefined) {
+    binding = clause.values;
+  }
+  return {
+    method: getMethodFromClause(clause),
+    params: [`${viewId}.${clause.key}`, binding],
+    core
+  };
+}
+
+
+/**
+ * Contructs a knex object ready to extract the required info to feed into the mapper
+ * for auto-populating collections/associations.
+ * @ignore
+ *
+ * @param {JoinJsMap} models
+ * @param {Object} model
+ * @param {KnexInstance} knex
+ * @param {Array} whereClauses - Array of where clauses
+ * @param {String} sortAttr - The property to sort based on
+ * @param {String} sortDir - asc/desc
+ * @param {Int} limit - The max number of results to return
+ * @param {Int} skip - The offset from the start of the result set
+ */
+function constructQuery(models, model, knex, whereClauses, sortAttr, sortDir, limit, skip) {
+
+  const wClauses = whereClauses.map(clause =&gt; preProcessWhereClause(clause, models, model));
+  const coreWClauses = wClauses.filter(clause =&gt; clause.core);
+
+  let queryObj = knex
+
+      // Start with a subquery to apply the limit, skip and order-by
+      // on the primary entity for the query
+      .with(`${model.viewId}-core`, qb =&gt;
+            constructSubQuery(qb, model.viewId, limit, skip, sortAttr, sortDir, coreWClauses))
+
+      .from(`${model.viewId}-core`);
+
+  // Add all the select statements required for the joins and the properties to
+  // be returned
+  queryObj = queryObj.select(constructSelects(models, model));
+
+  // Generate a list of params to be passed to leftJoin
+  const assocJoinParams = model.associations
+    .filter(assoc =&gt; assoc.populate)
+    .map(assoc =&gt; helpers.createAssociationJoinParameters(
+        `${model.viewId}-core`,
+        assoc.mapId,
+        assoc.viewId
+    ));
+
+  const collJoinParams = model.collections
+    .map(coll =&gt; helpers.createCollectionJoinParameters(
+        model.mapId,
+        `${model.viewId}-core`,
+        coll.mapId,
+        coll.viewId
+    ));
+
+
+  // Remove any null param sets
+  const joinParams = assocJoinParams.concat(collJoinParams).filter(p =&gt; !!p);
+
+  // Attach the join to the query Object
+  queryObj = helpers.attachJoins(queryObj, joinParams);
+
+  queryObj = helpers.applyWhereClauses(queryObj, wClauses.filter(clause =&gt; !clause.core));
+
+  if (sortAttr &amp;&amp; sortDir) {
+    queryObj = queryObj.orderBy(`${model.viewId}-core.${sortAttr}`, sortDir);
+  }
+
+  return queryObj;
+}
+
+module.exports = constructQuery;
+
+// Export these for unit testing
+module.exports._addCollectionSelects = addCollectionSelects;
+module.exports._addAssociationSelects = addAssociationSelects;
+module.exports._constructSelects = constructSelects;
+module.exports._constructSubQuery = constructSubQuery;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

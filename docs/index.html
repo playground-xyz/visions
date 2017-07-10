@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">Knex Wrapper API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/PreparedQuery.js~PreparedQuery.html">PreparedQuery</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/index.js~Visions.html">Visions</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-constructQuery">constructQuery</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-doJoins">doJoins</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-helpers">helpers</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-joinjs">joinjs</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-PreparedQuery">PreparedQuery</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-preProcessModels">preProcessModels</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="visions">Visions</h1>
+<p>Visions is very much a QueryBuilder not a full ORM. It will not handle schema definitions or migrations, but instead
+reduce the amount of repetitive boilerplate queries required for basic selects and joins. There are a couple of interesting
+features that are not consistently offered in existing nodejs QueryBuilder libraries.</p>
+<ul>
+<li>Clean database view support</li>
+<li>Model association population using proper database joins (one database query per logical query)</li>
+</ul>
+<p>Support for database views are implemented by overlaying a set of view names over the original table names, then
+using this &quot;overlay&quot; to generate and rename queries. Once the wrapper function is created, the high-level interface
+will substitute all uses of the original table name with the overlayed view. This both simplifies the ease of use
+as well as protecting against bugs that use the wrong view in a query.</p>
+<p>Model associations are used to dynamically create common query patterns without the boilerplate. The high-level
+interface exposes basic options when querying a model, but the <code>KnexWrapper.getViewName()</code> method can be used
+along with knex to implement more specialised queries when required.</p>
+<h2 id="install">Install</h2>
+<p><code>npm install --save visions</code></p>
+<h2 id="usage">Usage</h2>
+<p>Setup your model schema (see <a href="https://github.com/archfirst/joinjs">JoinJs</a> for details on the structure for
+this declaration step). The only difference is that <code>columnPrefix</code> is overwritten internally as it must 
+match the query generation.</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">
+const models = [
+  {
+    mapId: &apos;owner&apos;,
+    idProperty: &apos;id&apos;,
+    properties: [&apos;age&apos;, &apos;birthday&apos;],
+    collections: [
+      { name: &apos;pets&apos;, mapId: &apos;pet&apos; }
+    ]
+  },
+  {
+    mapId: &apos;pet&apos;,
+    idProperty: &apos;id&apos;,
+    associations: [
+      { name: &apos;owner&apos;, mapId: &apos;owner&apos; }
+    ]
+  }
+];</code>
+</code></pre>
+<p>Use a middleware to determine a set of database views for the request. This part of the code example is
+very vague as the structure of views in an application varies based on the use-case.</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">const Visions = require(&apos;visions&apos;);
+const app = express();
+const knex = require(&apos;knex&apos;)(config.database);
+
+app.use(async (req, res, next) =&gt; {
+
+  // The structure of your views is completely up to your use-case
+  const viewId = await determineViewIdForRequest(req.user.id);
+  const views = {
+    owner: `${viewId}__owner`,
+    pet: `${viewId}__pet`
+  };
+
+  // Attach the querybuilder instance to the request object
+  req.visions = new Visions(models, knex, views);
+
+  next();
+});</code>
+</code></pre>
+<p>Finally, in your controllers you can write simple, readable queries.</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">app.get(&apos;/owner/:id&apos;, (req, res) =&gt; {
+  req.visions.generateQueryFor(&apos;owner&apos;)
+      .populate(&apos;pet&apos;)
+      .sort(&apos;birthday&apos;, &apos;asc&apos;)
+      .limit(req.query.limit)
+      .skip(req.query.skip)
+      .where({
+        key: &apos;id&apos;,
+        value: req.params.id
+      })
+      .exec()
+      .then(data =&gt; res.status(200).send(data))
+      .catch(err =&gt; res.status(500).send({ error: err }));
+});</code>
+</code></pre>
+<p>Or use knex directly for more complex queries.</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">app.get(&apos;/owner/:id&apos;, (req, res) =&gt; {
+  knex
+    .select()
+    // This will use the view you overlayed on the owner model for this request
+    // (or just &quot;owner&quot;) if you didn&apos;t specify a view for it
+    .from(req.visions.getViewNameFor(&apos;owner&apos;))
+    .rightOuterJoin(
+        req.visions.getViewNameFor(&apos;pet&apos;),
+        `${req.visions.getViewNameFor(&apos;pet&apos;)}.owner`,
+        `${req.visions.getViewNameFor(&apos;owner&apos;)}.id`,
+    ).then(data =&gt; res.status(200).send(data));
+});</code>
+</code></pre>
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li><a href="https://github.com/archfirst/joinjs">JoinJs</a> which only depends on Lodash internally</li>
+</ul>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
