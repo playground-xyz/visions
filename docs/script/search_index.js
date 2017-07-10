@@ -13,7 +13,7 @@ window.esdocSearchIndex = [
   ],
   [
     "visions~visions",
-    "class/lib/index.js~Visions.html",
+    "class/lib/Visions.js~Visions.html",
     "<span>Visions</span> <span class=\"search-result-import-path\">visions</span>",
     "class"
   ],
@@ -474,6 +474,48 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
+    "lib/visions.js",
+    "file/lib/Visions.js.html",
+    "lib/Visions.js",
+    "file"
+  ],
+  [
+    "lib/visions.js~visions#constructor",
+    "class/lib/Visions.js~Visions.html#instance-constructor-constructor",
+    "lib/Visions.js~Visions#constructor",
+    "method"
+  ],
+  [
+    "lib/visions.js~visions#generatequeryfor",
+    "class/lib/Visions.js~Visions.html#instance-method-generateQueryFor",
+    "lib/Visions.js~Visions#generateQueryFor",
+    "method"
+  ],
+  [
+    "lib/visions.js~visions#getviewnamefor",
+    "class/lib/Visions.js~Visions.html#instance-method-getViewNameFor",
+    "lib/Visions.js~Visions#getViewNameFor",
+    "method"
+  ],
+  [
+    "lib/visions.js~visions#knex",
+    "class/lib/Visions.js~Visions.html#instance-member-knex",
+    "lib/Visions.js~Visions#knex",
+    "member"
+  ],
+  [
+    "lib/visions.js~visions#models",
+    "class/lib/Visions.js~Visions.html#instance-member-models",
+    "lib/Visions.js~Visions#models",
+    "member"
+  ],
+  [
+    "lib/visions.js~visions#processedmodels",
+    "class/lib/Visions.js~Visions.html#instance-member-processedModels",
+    "lib/Visions.js~Visions#processedModels",
+    "member"
+  ],
+  [
     "lib/constructquery.js",
     "file/lib/constructQuery.js.html",
     "lib/constructQuery.js",
@@ -490,48 +532,6 @@ window.esdocSearchIndex = [
     "file/lib/helpers.js.html",
     "lib/helpers.js",
     "file"
-  ],
-  [
-    "lib/index.js",
-    "file/lib/index.js.html",
-    "lib/index.js",
-    "file"
-  ],
-  [
-    "lib/index.js~visions#constructor",
-    "class/lib/index.js~Visions.html#instance-constructor-constructor",
-    "lib/index.js~Visions#constructor",
-    "method"
-  ],
-  [
-    "lib/index.js~visions#generatequeryfor",
-    "class/lib/index.js~Visions.html#instance-method-generateQueryFor",
-    "lib/index.js~Visions#generateQueryFor",
-    "method"
-  ],
-  [
-    "lib/index.js~visions#getviewnamefor",
-    "class/lib/index.js~Visions.html#instance-method-getViewNameFor",
-    "lib/index.js~Visions#getViewNameFor",
-    "method"
-  ],
-  [
-    "lib/index.js~visions#knex",
-    "class/lib/index.js~Visions.html#instance-member-knex",
-    "lib/index.js~Visions#knex",
-    "member"
-  ],
-  [
-    "lib/index.js~visions#models",
-    "class/lib/index.js~Visions.html#instance-member-models",
-    "lib/index.js~Visions#models",
-    "member"
-  ],
-  [
-    "lib/index.js~visions#processedmodels",
-    "class/lib/index.js~Visions.html#instance-member-processedModels",
-    "lib/index.js~Visions#processedModels",
-    "member"
   ],
   [
     "lib/preprocessmodels.js",

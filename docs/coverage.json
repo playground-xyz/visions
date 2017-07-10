@@ -3,6 +3,17 @@
   "expectCount": 29,
   "actualCount": 12,
   "files": {
+    "lib/Visions.js": {
+      "expectCount": 9,
+      "actualCount": 4,
+      "undocumentLines": [
+        1,
+        15,
+        16,
+        2,
+        17
+      ]
+    },
     "lib/PreparedQuery.js": {
       "expectCount": 18,
       "actualCount": 8,
@@ -17,17 +28,6 @@
         125,
         126,
         30
-      ]
-    },
-    "lib/index.js": {
-      "expectCount": 9,
-      "actualCount": 4,
-      "undocumentLines": [
-        1,
-        15,
-        16,
-        2,
-        17
       ]
     },
     "lib/constructQuery.js": {
