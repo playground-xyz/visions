@@ -3,12 +3,12 @@
   "version": "2.0.2",
   "repository": "git://github.com/playground-xyz/visions",
   "description": "Wrapper for knex to reduce boilerplate for basic queries",
-  "main": "lib/index.js",
+  "main": "lib/Visions.js",
   "scripts": {
     "test": "npm run lint && mocha test",
     "coverage": "nyc mocha test && nyc report --reporter=html",
-    "lint": "eslint index.js lib/ test/",
-    "lint:fix": "eslint --fix index.js lib/ test/",
+    "lint": "eslint lib/ test/",
+    "lint:fix": "eslint --fix lib/ test/",
     "docs": "rm -rf ./docs && esdoc -c .esdoc.json"
   },
   "author": "Julian Fell",

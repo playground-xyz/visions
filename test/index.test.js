@@ -2,7 +2,7 @@ const mockDb = require('mock-knex');
 const expect = require('expect');
 const db = require('knex')({ client: 'pg' });
 
-const Visions = require('../lib/index');
+const Visions = require('../lib/Visions');
 
 const models = [
   {
