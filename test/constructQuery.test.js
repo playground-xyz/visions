@@ -187,4 +187,57 @@ describe('ConstructQuery', () => {
 
     });
   });
+
+  describe('#constructWhere', () => {
+    it('should generate a query with operator in the where clause', () => {
+
+      const qb = constructQuery(
+          models,
+          models[0],
+          db,
+          [{ key: 'id', operator: 'like', value: '%test%' }],
+          'name',    // sortAttr
+          'asc',     // sortDir
+          4,         // limit
+          7          // skip
+      );
+
+      return qb.then(() => {
+        // Subquery
+        expect(generatedQuery.sql).toContain(
+            'select * from "student" where "student"."id" like ? order ' +
+            'by "student"."name" asc limit ? offset ?');
+
+        // Bindings
+        expect(generatedQuery.bindings).toEqual(['%test%', 4, 7]);
+      });
+    });
+  });
+
+  describe('#constructOuterQuery', () => {
+    it('should generate a query with a view lookup', () => {
+
+      const qb = constructQuery(
+          models,
+          models[0],
+          db,
+          [{ model: 'student', key: 'id', value: '10' }]
+      );
+
+      return qb.then(() => {
+        // Subquery
+        expect(generatedQuery.sql).toContain(
+          // The main model properties
+          '"student-core"."id" as "id"'
+        );
+        expect(generatedQuery.sql).toContain(
+          'left join "tutor" on "tutor"."id" = "student-core"."tutor"');
+        // join friend (coll)
+        expect(generatedQuery.sql).toContain(
+          'left join "friend_view" on "student-core"."id" = "friend_view"."student"');
+        // Bindings
+        expect(generatedQuery.bindings).toEqual(['10']);
+      });
+    });
+  });
 });
