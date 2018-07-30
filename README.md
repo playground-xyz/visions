@@ -175,4 +175,3 @@ Note that the keys in the join table are the same as the original tables they re
 ## Dependencies
 
 - [JoinJs](https://github.com/archfirst/joinjs)
-- [Lodash](https://lodash.com/)
