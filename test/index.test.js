@@ -13,7 +13,8 @@ const models = [
       { name: 'tutor', mapId: 'tutor' }
     ],
     collections: [
-      { name: 'friends', mapId: 'friend' }
+      { name: 'friends', mapId: 'friend' },
+      { name: 'tutors', mapId: 'tutor', joinTable: 'join_student_tutor' }
     ]
   },
   {
@@ -21,14 +22,14 @@ const models = [
     idProperty: 'id',
     properties: ['name', 'email'],
     collections: [
-      { name: 'students', mapId: 'student' }
+      { name: 'students', mapId: 'student', joinTable: 'join_student_tutor' }
     ]
   },
   {
     mapId: 'friend',
     idProperty: 'id',
     properties: ['age']
-  }
+  },
 ];
 
 const views = {
@@ -54,6 +55,61 @@ describe('#getViewNameFor', () => {
 });
 
 describe('#generateQueryFor', () => {
+
+  describe('Join table for many-to-many relations', () => {
+
+    let tracker;
+    let generatedQuery;
+
+    before(() => {
+      // Mock out the knex object
+      mockDb.mock(db);
+      tracker = mockDb.getTracker();
+      tracker.install();
+
+      // Setup the results
+      tracker.on('query', query => {
+
+        // Save a reference to the generated query
+        generatedQuery = query;
+        query.response([
+        ]);
+      });
+
+      // Run the query
+      const visions = new Visions(models, db, views);
+
+      return visions
+        .generateQueryFor('student')
+        .populate('friends')
+        .limit(2)
+        .exec()
+        .then(() => {
+          tracker.uninstall();
+          mockDb.unmock(db);
+        });
+    });
+
+    it('Should compose a select query', () => {
+      expect(generatedQuery.bindings).toEqual([2]);
+      expect(generatedQuery.method).toEqual('select');
+
+      // Should use a subquery to apply the limit
+      expect(generatedQuery.sql).toContain(
+        'with "student_view-core" as (select * from "student_view" limit ?)');
+      // View on student table with alias
+      expect(generatedQuery.sql).toContain('select "student_view-core"."id" as "id"');
+      // Original table for friend table
+      expect(generatedQuery.sql).toContain('"friend"."age" as "friend_age"');
+
+      expect(generatedQuery.sql).toContain('left join "join_student_tutor" ' +
+        'on "student_view-core"."id" = "join_student_tutor"."student"');
+
+      expect(generatedQuery.sql).toContain('left join "tutor_view" ' +
+        'on "join_student_tutor"."tutor" = "tutor_view"."id"');
+    });
+
+  });
 
   describe('Single skip and limit calls with views', () => {
 
@@ -110,7 +166,7 @@ describe('#generateQueryFor', () => {
 
       // Should use a subquery to apply the limit
       expect(generatedQuery.sql).toContain(
-          'with "student_view-core" as (select * from "student_view" limit ? offset ?)');
+        'with "student_view-core" as (select * from "student_view" limit ? offset ?)');
       // View on student table with alias
       expect(generatedQuery.sql).toContain('select "student_view-core"."id" as "id"');
       // Original table for friend table
@@ -174,7 +230,7 @@ describe('#generateQueryFor', () => {
       expect(generatedQuery.method).toEqual('select');
 
       expect(generatedQuery.sql).toContain(
-          '(select * from "student" order by "student"."email" asc)');
+        '(select * from "student" order by "student"."email" asc)');
     });
 
     it('Should construct a single output object', () => {

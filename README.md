@@ -111,6 +111,68 @@ app.get('/owner/:id', (req, res) => {
 });
 ```
 
+## 1-1 and M-N Relationships
+
+1-1 and M-N are special cases of collections respectively and require flags in the mapping
+object to identify them.
+
+### 1-1 Relationships
+
+The only change required for 1-1 relationships is that a flag is added to the collection.
+
+```js
+const models = [
+  {
+    mapId: 'person',
+    idProperty: 'id',
+    collections: [
+      { name: 'father', mapId: 'father', isOneToOne: true }
+    ]
+  }
+];
+```
+
+### M-N Relationships
+
+This library assumes that the database schema is properly normalised and therefore includes
+a minimal join table between the 2 joined entities. This is to be defined as part of the
+relationship in the mapping object.
+
+```js
+const models = [
+  {
+    mapId: 'employee',
+    idProperty: 'id',
+    collections: [
+      { name: 'managers', mapId: 'manager', joinTable: 'employee_manager_join' }
+    ]
+  },
+  {
+    mapId: 'manager',
+    idProperty: 'id',
+    associations: [
+      { name: 'staff', mapId: 'employee', joinTable: 'employee_manager_join' }
+    ]
+  }
+];
+```
+
+with the database schema defined as:
+
+```sql
+CREATE TABLE employee ( id integer NOT NULL PRIMARY KEY );
+CREATE TABLE manager ( id integer NOT NULL PRIMARY KEY );
+
+CREATE TABLE employee_manager_join (
+  employee integer NOT NULL,
+  manager integer NOT NULL,
+  PRIMARY_KEY(employee, manager)
+);
+```
+
+Note that the keys in the join table are the same as the original tables they reference.
+
 ## Dependencies
 
-- [JoinJs](https://github.com/archfirst/joinjs) which only depends on Lodash internally
+- [JoinJs](https://github.com/archfirst/joinjs)
+- [Lodash](https://lodash.com/)
