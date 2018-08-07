@@ -9,11 +9,9 @@ const models = [
     mapId: 'student',
     idProperty: 'id',
     properties: ['name', 'email'],
-    associations: [
-      { name: 'tutor', mapId: 'tutor' }
-    ],
     collections: [
-      { name: 'friends', mapId: 'friend' }
+      { name: 'friends', mapId: 'friend' },
+      { name: 'tutors', mapId: 'tutor', joinTable: 'join_student_tutor' }
     ]
   },
   {
@@ -21,14 +19,14 @@ const models = [
     idProperty: 'id',
     properties: ['name', 'email'],
     collections: [
-      { name: 'students', mapId: 'student' }
+      { name: 'students', mapId: 'student', joinTable: 'join_student_tutor' }
     ]
   },
   {
     mapId: 'friend',
     idProperty: 'id',
     properties: ['age']
-  }
+  },
 ];
 
 const views = {
@@ -54,6 +52,104 @@ describe('#getViewNameFor', () => {
 });
 
 describe('#generateQueryFor', () => {
+
+  describe('Join table for many-to-many relations', () => {
+
+    let tracker;
+    let generatedQuery;
+    let finalResult;
+
+    before(() => {
+      // Mock out the knex object
+      mockDb.mock(db);
+      tracker = mockDb.getTracker();
+      tracker.install();
+
+      // Setup the results
+      tracker.on('query', query => {
+
+        // Save a reference to the generated query
+        generatedQuery = query;
+        query.response([
+          {
+            id: 's1',
+            name: 'Jim',
+            email: 'jim@school.com',
+            tutor_id: 't1',
+            tutor_email: 'joey@tutor.com',
+            tutor_name: 'Joey',
+            friend: 'f1'
+          },
+          {
+            id: 's1',
+            name: 'Jim',
+            email: 'jim@school.com',
+            tutor_id: 't2',
+            tutor_email: 'phil@tutor.com',
+            tutor_name: 'Phil',
+            friend: 'f2'
+          }
+        ]);
+      });
+
+      // Run the query
+      const visions = new Visions(models, db, views);
+
+      return visions
+        .generateQueryFor('student')
+        .populate('tutors')
+        .limit(2)
+        .exec()
+        .then((res) => {
+          tracker.uninstall();
+          mockDb.unmock(db);
+          finalResult = res;
+        });
+    });
+
+    it('Should compose a select query', () => {
+      expect(generatedQuery.bindings).toEqual([2]);
+      expect(generatedQuery.method).toEqual('select');
+
+      // Should use a subquery to apply the limit
+      expect(generatedQuery.sql).toContain(
+        'with "student_view-core" as (select * from "student_view" limit ?)');
+      // View on student table with alias
+      expect(generatedQuery.sql).toContain('select "student_view-core"."id" as "id"');
+      // Original table for friend table
+      expect(generatedQuery.sql).toContain('"friend"."age" as "friend_age"');
+
+      expect(generatedQuery.sql).toContain('left join "join_student_tutor" ' +
+        'on "student_view-core"."id" = "join_student_tutor"."student"');
+
+      expect(generatedQuery.sql).toContain('left join "tutor_view" ' +
+        'on "join_student_tutor"."tutor" = "tutor_view"."id"');
+    });
+
+    it('Should map the results into a nested object', () => {
+      expect(finalResult).toEqual([
+        {
+          id: 's1',
+          name: 'Jim',
+          email: 'jim@school.com',
+          friends: [],
+          tutors: [
+            {
+              id: 't1',
+              name: 'Joey',
+              email: 'joey@tutor.com'
+            },
+            {
+              id: 't2',
+              name: 'Phil',
+              email: 'phil@tutor.com'
+            }
+          ]
+        }
+      ]);
+    });
+
+  });
 
   describe('Single skip and limit calls with views', () => {
 
@@ -110,7 +206,7 @@ describe('#generateQueryFor', () => {
 
       // Should use a subquery to apply the limit
       expect(generatedQuery.sql).toContain(
-          'with "student_view-core" as (select * from "student_view" limit ? offset ?)');
+        'with "student_view-core" as (select * from "student_view" limit ? offset ?)');
       // View on student table with alias
       expect(generatedQuery.sql).toContain('select "student_view-core"."id" as "id"');
       // Original table for friend table
@@ -141,14 +237,14 @@ describe('#generateQueryFor', () => {
             id: 's1',
             name: 'Jim',
             email: 'jim@school.com',
-            tutor: 't1',
+            tutor_id: 't1',
             friend_id: 'f1'
           },
           {
             id: 's1',
             name: 'Jim',
             email: 'jim@school.com',
-            tutor: 't1',
+            tutor_id: 't1',
             friend_id: 'f2'
           }
         ]);
@@ -174,7 +270,7 @@ describe('#generateQueryFor', () => {
       expect(generatedQuery.method).toEqual('select');
 
       expect(generatedQuery.sql).toContain(
-          '(select * from "student" order by "student"."email" asc)');
+        '(select * from "student" order by "student"."email" asc)');
     });
 
     it('Should construct a single output object', () => {
@@ -191,8 +287,8 @@ describe('#generateQueryFor', () => {
       expect(friends[1]).toEqual('f2');
     });
 
-    it('Should not populate the tutor field', () => {
-      expect(result[0].tutor).toEqual('t1');
+    it('Should not populate the tutors list', () => {
+      expect(result[0].tutors).toEqual(['t1']);
     });
 
   });
@@ -219,7 +315,7 @@ describe('#generateQueryFor', () => {
             id: 's1',
             name: 'Jim',
             email: 'jim@school.com',
-            tutor: 't1',
+            tutor_id: 't1',
             friend_age: 22,
             friend_id: 'f1'
           },
@@ -227,7 +323,7 @@ describe('#generateQueryFor', () => {
             id: 's1',
             name: 'Jim',
             email: 'jim@school.com',
-            tutor: 't1',
+            tutor_id: 't1',
             friend_age: 26,
             friend_id: 'f2'
           }
@@ -253,8 +349,6 @@ describe('#generateQueryFor', () => {
       expect(generatedQuery.bindings).toEqual([]);
       expect(generatedQuery.method).toEqual('select');
 
-      // Un-populated tutor association uses as normal property
-      expect(generatedQuery.sql).toContain('"student-core"."tutor" as "tutor"');
       // Properties of populated friends collection prefixed with friend_
       expect(generatedQuery.sql).toContain('"friend"."age" as "friend_age"');
     });
@@ -274,7 +368,7 @@ describe('#generateQueryFor', () => {
     });
 
     it('Should not populate the tutor field', () => {
-      expect(result[0].tutor).toEqual('t1');
+      expect(result[0].tutors).toEqual(['t1']);
     });
 
   });
