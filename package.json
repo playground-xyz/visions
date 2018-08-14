@@ -9,7 +9,8 @@
     "coverage": "nyc mocha test && nyc report --reporter=html",
     "lint": "eslint lib/ test/",
     "lint:fix": "eslint --fix lib/ test/",
-    "docs": "rm -rf ./docs && esdoc -c .esdoc.json"
+    "docs": "rm -rf ./docs && esdoc -c .esdoc.json",
+    "postversion": "git push --tags && git push origin HEAD:master && npm publish"
   },
   "author": "Julian Fell",
   "contributors": [
