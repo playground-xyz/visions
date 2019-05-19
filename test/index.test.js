@@ -193,6 +193,7 @@ describe('#generateQueryFor', () => {
         // Skip past the final result
         .skip(3)
         .limit(9)
+        .calculateCount(true)
         .exec()
         .then(() => {
           tracker.uninstall();
@@ -204,9 +205,11 @@ describe('#generateQueryFor', () => {
       expect(generatedQuery.bindings).toEqual([9, 3]);
       expect(generatedQuery.method).toEqual('select');
 
+      const count = 'count(*) OVER() AS full_count';
+      const pagination = 'limit ? offset ?';
       // Should use a subquery to apply the limit
       expect(generatedQuery.sql).toContain(
-        'with "student_view-core" as (select * from "student_view" limit ? offset ?)');
+        `with "student_view-core" as (select *, ${count} from "student_view" ${pagination})`);
       // View on student table with alias
       expect(generatedQuery.sql).toContain('select "student_view-core"."id" as "id"');
       // Original table for friend table
@@ -371,5 +374,80 @@ describe('#generateQueryFor', () => {
       expect(result[0].tutors).toEqual(['t1']);
     });
 
+  });
+
+  describe('Errors', () => {
+
+    it('should not allow filtering by non-core entity when pagination is applied', () => {
+      // Run the query
+      const visions = new Visions(models, db, {});
+
+      try {
+        visions
+          .generateQueryFor('student')
+          .populate('friends')
+          .skip(11)
+          .where({
+            model: 'friend',
+            value: 'Jimmy',
+            operator: 'eq',
+            key: 'name'
+          });
+
+        expect(true).toEqual(false);
+      } catch (e) {
+        expect(e.message).toEqual(
+          'Cannot use pagination when filtering by a property from a joined entity'
+        );
+      }
+    });
+
+    it('should not allow a skip to be added when filtering by non-core entity', () => {
+      // Run the query
+      const visions = new Visions(models, db, {});
+
+      try {
+        visions
+          .generateQueryFor('student')
+          .populate('friends')
+          .where({
+            model: 'friend',
+            value: 'Jimmy',
+            operator: 'eq',
+            key: 'name'
+          })
+          .skip(11);
+
+        expect(true).toEqual(false);
+      } catch (e) {
+        expect(e.message).toEqual(
+          'Cannot use pagination when filtering by a property from a joined entity'
+        );
+      }
+    });
+
+    it('should not allow a limit to be added when filtering by non-core entity', () => {
+      // Run the query
+      const visions = new Visions(models, db, {});
+
+      try {
+        visions
+          .generateQueryFor('student')
+          .populate('friends')
+          .where({
+            model: 'friend',
+            value: 'Jimmy',
+            operator: 'eq',
+            key: 'name'
+          })
+          .limit(11);
+
+        expect(true).toEqual(false);
+      } catch (e) {
+        expect(e.message).toEqual(
+          'Cannot use pagination when filtering by a property from a joined entity'
+        );
+      }
+    });
   });
 });

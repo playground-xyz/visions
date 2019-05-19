@@ -108,7 +108,7 @@ describe('ConstructQuery', () => {
 
   describe('#constructSelects', () => {
     it('should select all the relevant fields', () => {
-      const selects = constructQuery._constructSelects(models, models[0]);
+      const selects = constructQuery._constructSelects(models, models[0], false);
       expect(selects).toEqual([
         // The main model properties
         'student-core.id as id',
@@ -125,6 +125,26 @@ describe('ConstructQuery', () => {
         'friend_view.id as friend_id'
       ]);
     });
+
+    it('should include the full_count select', () => {
+      const selects = constructQuery._constructSelects(models, models[0], true);
+      expect(selects).toEqual([
+        // The main model properties
+        'student-core.id as id',
+        'student-core.name as name',
+        'student-core.email as email',
+
+        // the associations properties
+        'tutor.name as tutor_name',
+        'tutor.email as tutor_email',
+        'tutor.id as tutor_id',
+
+        // The collections properties
+        'friend_view.age as friend_age',
+        'friend_view.id as friend_id',
+        'full_count AS full_count'
+      ]);
+    });
   });
 
   describe('#constructSubQuery', () => {
@@ -132,6 +152,7 @@ describe('ConstructQuery', () => {
     it('should construct a subQuery and apply the parameters given', () => {
 
       const qb = constructQuery._constructSubQuery(
+          db,
           db,
           'student',
           4,         // limit
