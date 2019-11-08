@@ -42,11 +42,12 @@ const models = [
     idProperty: 'id',
     properties: ['height', 'weight'],
     collections: [
-      { name: 'friends', mapId: 'friend', viewId: 'friend', ignore: true }
+      { name: 'friends', mapId: 'friend', viewId: 'friend', populate: false, ignore: true },
+      { name: 'students', mapId: 'student', viewId: 'student', populate: true, ignore: false }
     ],
     associations: [
-      { name: 'students', mapId: 'student', viewId: 'student', ignore: true },
-      { name: 'tutors', mapId: 'tutor', viewId: 'tutor', ignore: true }
+      { name: 'students', mapId: 'student', viewId: 'student', populate: false, ignore: true },
+      { name: 'tutors', mapId: 'tutor', viewId: 'tutor', populate: false, ignore: false }
     ]
   }
 ];
@@ -102,6 +103,20 @@ describe('ConstructQuery', () => {
       expect(selects).toEqual([]);
     });
 
+    it(
+      'should select the associations of the selection when ignore false and populate true',
+    () => {
+      const selects = constructQuery._addCollectionSelects(
+          models[3].collections[1], models[3], models);
+
+      expect(selects).toEqual([
+        'student.name as student_name',
+        'student.email as student_email',
+        'student.id as student_id',
+        'student.tutor as student_tutor'
+      ]);
+    });
+
   });
 
   describe('#addAssociationSelects', () => {
@@ -129,6 +144,17 @@ describe('ConstructQuery', () => {
         models[3].associations[0], models[3], models);
 
       expect(selects).toEqual([]);
+    });
+
+    it(
+      'should only select the ID property on the core table when populate false and ignore false',
+    () => {
+      const selects = constructQuery._addAssociationSelects(
+        models[3].associations[1], models[3], models);
+
+      expect(selects).toEqual([
+        'human_view-core.tutor as tutor'
+      ]);
     });
 
   });
