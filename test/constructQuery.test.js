@@ -35,6 +35,19 @@ const models = [
     associations: [
       { name: 'tutor', mapId: 'tutor', viewId: 'tutor' }
     ],
+  },
+  {
+    mapId: 'human',
+    viewId: 'human_view',
+    idProperty: 'id',
+    properties: ['height', 'weight'],
+    collections: [
+      { name: 'friends', mapId: 'friend', viewId: 'friend', ignore: true }
+    ],
+    associations: [
+      { name: 'students', mapId: 'student', viewId: 'student', ignore: true },
+      { name: 'tutors', mapId: 'tutor', viewId: 'tutor', ignore: true }
+    ]
   }
 ];
 
@@ -82,6 +95,13 @@ describe('ConstructQuery', () => {
       ]);
     });
 
+    it('should return no selects if a collection is set to ignore true', () => {
+      const selects = constructQuery._addCollectionSelects(
+          models[3].collections[0], models[3], models);
+
+      expect(selects).toEqual([]);
+    });
+
   });
 
   describe('#addAssociationSelects', () => {
@@ -102,6 +122,13 @@ describe('ConstructQuery', () => {
         'tutor.email as tutor_email',
         'tutor.id as tutor_id'
       ]);
+    });
+
+    it('should return an empty select array when ignore is true', () => {
+      const selects = constructQuery._addAssociationSelects(
+        models[3].associations[0], models[3], models);
+
+      expect(selects).toEqual([]);
     });
 
   });
