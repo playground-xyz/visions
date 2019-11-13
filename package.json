@@ -1,6 +1,6 @@
 {
   "name": "visions",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "repository": "git://github.com/playground-xyz/visions",
   "description": "Wrapper for knex to reduce boilerplate for basic queries",
   "main": "lib/Visions.js",
