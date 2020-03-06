@@ -113,7 +113,7 @@ describe('#generateQueryFor', () => {
 
       // Should use a subquery to apply the limit
       expect(generatedQuery.sql).toContain(
-        'with "student_view-core" as (select * from "student_view" limit ?)');
+        'with "student_view-core" as (select "student_view".* from "student_view" limit ?)');
       // View on student table with alias
       expect(generatedQuery.sql).toContain('select "student_view-core"."id" as "id"');
       // Original table for friend table
@@ -209,7 +209,9 @@ describe('#generateQueryFor', () => {
       const pagination = 'limit ? offset ?';
       // Should use a subquery to apply the limit
       expect(generatedQuery.sql).toContain(
-        `with "student_view-core" as (select *, ${count} from "student_view" ${pagination})`);
+        'with "student_view-core" as (select "student_view".*,'
+        + ` ${count} from "student_view" ${pagination})`
+      );
       // View on student table with alias
       expect(generatedQuery.sql).toContain('select "student_view-core"."id" as "id"');
       // Original table for friend table
@@ -273,7 +275,7 @@ describe('#generateQueryFor', () => {
       expect(generatedQuery.method).toEqual('select');
 
       expect(generatedQuery.sql).toContain(
-        '(select * from "student" order by "student"."email" asc)');
+        '(select "student".* from "student" order by "student"."email" asc)');
     });
 
     it('Should construct a single output object', () => {

@@ -217,7 +217,7 @@ describe('ConstructQuery', () => {
 
       return qb.then(() => {
         expect(generatedQuery.sql).toEqual(
-            'select * from "student" order by "student"."name" asc limit ? offset ?');
+            'select "student".* from "student" order by "student"."name" asc limit ? offset ?');
         expect(generatedQuery.bindings).toEqual([4, 7]);
       });
 
@@ -242,7 +242,7 @@ describe('ConstructQuery', () => {
       return qb.then(() => {
         // Subquery
         expect(generatedQuery.sql).toContain(
-            'select * from "student" where "student"."id" in (?, ?) order ' +
+            'select "student".* from "student" where "student"."id" in (?, ?) order ' +
             'by "student"."name" asc limit ? offset ?');
 
         // join tutor (assoc)
@@ -279,7 +279,7 @@ describe('ConstructQuery', () => {
       return qb.then(() => {
         // Subquery
         expect(generatedQuery.sql).toContain(
-            'select * from "student" where "student"."id" like ? order ' +
+            'select "student".* from "student" where "student"."id" like ? order ' +
             'by "student"."name" asc limit ? offset ?');
 
         // Bindings
