@@ -49,6 +49,13 @@ const models = [
       { name: 'students', mapId: 'student', viewId: 'student', populate: false, ignore: true },
       { name: 'tutors', mapId: 'tutor', viewId: 'tutor', populate: false, ignore: false }
     ]
+  },
+  {
+    mapId: 'college',
+    viewId: 'college',
+    idProperty: 'id',
+    properties: ['location'],
+    association: [],
   }
 ];
 
@@ -284,6 +291,34 @@ describe('ConstructQuery', () => {
 
         // Bindings
         expect(generatedQuery.bindings).toEqual(['%test%', 4, 7]);
+      });
+    });
+  });
+
+  describe('#constructWhereAfterJoin', () => {
+    it('should generate a query that filters on a non-core table', () => {
+      const qb = constructQuery(
+        models,
+        models[0],
+        db,
+        [],
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          primaryJoin: 'tutor',
+          secondaryJoin: 'college',
+          value: 'test',
+        }
+      );
+
+      return qb.then(() => {
+        expect(generatedQuery.sql).toContain(
+          'with "student-core" as (select "student".* from "student" left join ' +
+          '"tutor" on "tutor"."id" = "student"."tutor" where "tutor"."college" = ?'
+        );
       });
     });
   });
